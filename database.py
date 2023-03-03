@@ -30,7 +30,6 @@ class DataBaseGUI:
         # VARIABLES
         self.login_frame, self.login_button, self.username, self.password = self.create_login_frame()
         
-        
 
     def create_login_frame(self):
 
@@ -45,25 +44,25 @@ class DataBaseGUI:
 
         # FRAMES
         login_frame = tk.Frame(self.window)
-        login_frame.pack(expand=True, fill='both')
+        login_frame.grid(row=0, column=0)
 
         title_label = tk.Label(login_frame, text="CARE-M DATABASE", font=(self.FONT_FAMILY, self.FONT_SIZE))
-        title_label.pack(pady=30)
+        title_label.grid(row=0, column=0, columnspan=2, pady=30)
 
         username_label = tk.Label(login_frame, text="USERNAME", font=(self.FONT_FAMILY, self.FONT_SIZE))
-        username_label.pack(padx=10, pady=10)
+        username_label.grid(row=1, column=0, padx=10, pady=10)
 
         username_info = tk.Entry(login_frame, width=35)
-        username_info.pack(padx=10, pady=10)
+        username_info.grid(row=1, column=1, padx=10, pady=10)
 
         password_label = tk.Label(login_frame, text="PASSWORD", font=(self.FONT_FAMILY, self.FONT_SIZE))
-        password_label.pack(padx=10, pady=10)
+        password_label.grid(row=2, column=0, padx=10, pady=10)
 
         password_info = tk.Entry(login_frame, width=35, show="*")
-        password_info.pack(padx=10, pady=10)
+        password_info.grid(row=2, column=1, padx=10, pady=10)
 
         login_button = tk.Button(login_frame, text="LOGIN", font=(self.FONT_FAMILY, self.FONT_SIZE), command=self.login)
-        login_button.pack(padx=10, pady=(25, 0))
+        login_button.grid(row=3, column=1, padx=10, pady=(25, 0))
 
         return login_frame, login_button, username_info, password_info
 
@@ -80,10 +79,12 @@ class DataBaseGUI:
         self.password1 = password
         
         try:
+            
             if password:
                 db = mysql.connector.connect(host='localhost', user=username, password=password, db='care-m')
                 cursor = db.cursor()
             else:
+                
                 db = mysql.connector.connect(host='localhost', user=username, db='care-m')
                 cursor = db.cursor()
 
@@ -98,7 +99,7 @@ class DataBaseGUI:
 
         try:  
             self.login_frame.destroy()
-            self.serial_id, self.first_name, self.last_name, self.remarks, self.x_coordinate, self.y_coordinatem, self.graph_button, self.matplot_button= self.create_database_frame() 
+            self.create_database_frame() 
             print("Successfully Logged In")
         except Exception as e:
             print("Error occured:", e)
@@ -142,24 +143,24 @@ class DataBaseGUI:
 
         # FORMS
 
-        serial_id = tk.Entry(database_frame, width=30)
-        serial_id.grid(row=0, column=1)
+        self.serial_id = tk.Entry(database_frame, width=30)
+        self.serial_id.grid(row=0, column=1)
 
-        first_name = tk.Entry(database_frame, width=30)
-        first_name.grid(row=1, column=1)
+        self.first_name = tk.Entry(database_frame, width=30)
+        self.first_name.grid(row=1, column=1)
 
-        surname = tk.Entry(database_frame, width=30)
-        surname.grid(row=2, column=1)
+        self.last_name = tk.Entry(database_frame, width=30)
+        self.last_name.grid(row=2, column=1)
 
-        remarks = tk.Entry(database_frame, width=30)
-        remarks.grid(row=3, column=1)
+        self.remarks = tk.Entry(database_frame, width=30)
+        self.remarks.grid(row=3, column=1)
         
 
-        x_coordinate = tk.Entry(database_frame, width=30)
-        x_coordinate.grid(row=4, column=1)
+        self.x_coordinate = tk.Entry(database_frame, width=30)
+        self.x_coordinate.grid(row=4, column=1)
 
-        y_coordinate = tk.Entry(database_frame, width=30)
-        y_coordinate.grid(row=4, column=3)
+        self.y_coordinate = tk.Entry(database_frame, width=30)
+        self.y_coordinate.grid(row=4, column=3)
 
         # CRUD BUTTONS
         submit_button = tk.Button(database_frame, text='ADD', width=15, height=2)
@@ -182,14 +183,14 @@ class DataBaseGUI:
         # graph_button.grid(row=0, column=3, padx=25, pady=10, ipadx=25)
         # graph_button['command'] = self.graphPoints
 
-        matplot_button = tk.Button(database_frame, text='GRAPH POINTS', width=15, height=2)
-        matplot_button.grid(row=2, column=3, padx=25, pady=10, ipadx=25)
-        matplot_button['command'] = self.graph_points
+        self.matplot_button = tk.Button(database_frame, text='GRAPH POINTS', width=15, height=2)
+        self.matplot_button.grid(row=2, column=3, padx=25, pady=10, ipadx=25)
+        self.matplot_button['command'] = self.graph_points
 
         self.create_tree()
         self.tree.bind('<<TreeviewSelect>>', self.update_entry)
 
-        return serial_id, first_name, surname, remarks, x_coordinate, y_coordinate, graph_button, matplot_button
+        # return serial_id, first_name, last_name, remarks, x_coordinate, y_coordinate, matplot_button
 
     def create_tree(self):
 
