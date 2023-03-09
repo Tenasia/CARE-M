@@ -47,7 +47,7 @@ class DataBaseGUI:
         login_frame.grid(row=0, column=0)
 
         title_label = tk.Label(login_frame, text="CARE-M DATABASE", font=(self.FONT_FAMILY, self.FONT_SIZE))
-        title_label.grid(row=0, column=0, columnspan=2, pady=30)
+        title_label.grid(row=0, column=0, columnspan=2, pady=(60, 50), padx=(25, 0))
 
         username_label = tk.Label(login_frame, text="USERNAME", font=(self.FONT_FAMILY, self.FONT_SIZE))
         username_label.grid(row=1, column=0, padx=10, pady=10)
@@ -61,8 +61,8 @@ class DataBaseGUI:
         password_info = tk.Entry(login_frame, width=35, show="*")
         password_info.grid(row=2, column=1, padx=10, pady=10)
 
-        login_button = tk.Button(login_frame, text="LOGIN", font=(self.FONT_FAMILY, self.FONT_SIZE), command=self.login)
-        login_button.grid(row=3, column=1, padx=10, pady=(25, 0))
+        login_button = tk.Button(login_frame, text="LOGIN", font=(self.FONT_FAMILY, self.FONT_SIZE), command=self.login, width=7)
+        login_button.grid(row=3, column=0, columnspan=2, padx=(25, 0), pady=(40, 0))
 
         return login_frame, login_button, username_info, password_info
 
@@ -179,9 +179,9 @@ class DataBaseGUI:
         clear_button.grid(row=1, column=3, padx=25, pady=10, ipadx=25)
         clear_button['command'] = self.clear_entries
 
-        # graph_button = tk.Button(database_frame, text='SHOW GRAPH', width=15, height=2)
-        # graph_button.grid(row=0, column=3, padx=25, pady=10, ipadx=25)
-        # graph_button['command'] = self.graphPoints
+        refresh_button = tk.Button(database_frame, text='REFRESH TABLE', width=15, height=2)
+        refresh_button.grid(row=0, column=3, padx=25, pady=10, ipadx=25)
+        refresh_button['command'] = self.show
 
         self.matplot_button = tk.Button(database_frame, text='GRAPH POINTS', width=15, height=2)
         self.matplot_button.grid(row=2, column=3, padx=25, pady=10, ipadx=25)
