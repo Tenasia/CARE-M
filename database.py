@@ -93,7 +93,8 @@ class DataBaseGUI:
 
         try:  
             self.login_frame.pack_forget()
-            self.database_frame = self.create_database_frame() 
+            self.create_database_frame() 
+
             print("Successfully Logged In")
         except Exception as e:
             print("Error occured:", e)
@@ -107,19 +108,19 @@ class DataBaseGUI:
 
         self.center(self.window)
 
-        database_frame = tk.Frame(self.window)
-        database_frame.grid(row=0, column=0, padx=10, pady=10)
+        self.database_frame = tk.Frame(self.window)
+        self.database_frame.grid(row=0, column=0, padx=10, pady=10)
         
         # LABELS
         entry_fields = [('Serial ID', 1), ('First Name', 1), ('Last Name', 1), ('Remarks', 1)]
 
         # Create the labels and Entry widgets in a loop
         for i, (label_text, col) in enumerate(entry_fields):
-            label = tk.Label(database_frame, text=label_text, width=15, height=2)
+            label = tk.Label(self.database_frame, text=label_text, width=15, height=2)
             label.grid(row=i, column=0, pady=10, padx=10)
             label.config(font=('Helvetica Bold', 10))
             
-            entry = tk.Entry(database_frame, width=30)
+            entry = tk.Entry(self.database_frame, width=30)
             entry.grid(row=i, column=col)
             
             # Set the Entry widget as an attribute of the object using the label text as the attribute name
@@ -128,14 +129,14 @@ class DataBaseGUI:
         location_fields = ['Location: X', 'Location: Y']
 
         for i in location_fields:
-            label = tk.Label(database_frame, text=i, width=15, height=2)
+            label = tk.Label(self.database_frame, text=i, width=15, height=2)
             if i == 'Location: Y':
                 label.grid(row=4, column=2, pady=10, padx=10)
             else:
                 label.grid(row=4, column=0, pady=10, padx=10)
         
-        self.x_coordinate = tk.Entry(database_frame, width=30)
-        self.y_coordinate = tk.Entry(database_frame, width=30)
+        self.x_coordinate = tk.Entry(self.database_frame, width=30)
+        self.y_coordinate = tk.Entry(self.database_frame, width=30)
 
         self.x_coordinate.grid(row=4, column=1)
         self.y_coordinate.grid(row=4, column=3)
@@ -145,25 +146,25 @@ class DataBaseGUI:
         button_commands = [self.submit, self.update, self.delete, self.clear_entries, self.show]
 
         for i, name in enumerate(button_names):
-            button = tk.Button(database_frame, text=name, width=15, height=2)
+            button = tk.Button(self.database_frame, text=name, width=15, height=2)
             if name == 'REFRESH TABLE':
                 button.grid(row=1, column=3, pady=10, ipadx=25)
             else:
                 button.grid(row=i, column=2, padx=25, pady=10, ipadx=25)
             button['command'] = button_commands[i]
 
-        modules_button = tk.Button(database_frame, text='MANAGE MODULES', width=15, height=2)
+        modules_button = tk.Button(self.database_frame, text='MANAGE MODULES', width=15, height=2)
         modules_button.grid(row=0, column=3, padx=25, pady=10, ipadx=25)
         modules_button['command'] = self.create_module_frame
         
-        self.matplot_button = tk.Button(database_frame, text='GRAPH POINTS', width=15, height=2)
+        self.matplot_button = tk.Button(self.database_frame, text='GRAPH POINTS', width=15, height=2)
         self.matplot_button.grid(row=2, column=3, padx=25, pady=10, ipadx=25)
         self.matplot_button['command'] = self.graph_points
 
         self.create_tree()
         self.tree.bind('<<TreeviewSelect>>', self.update_entry)
 
-        return database_frame
+        # return database_frame
 
     def create_tree(self):
 
@@ -172,8 +173,8 @@ class DataBaseGUI:
         'SERIAL_ID': 100,
         'FIRST_NAME': 100,
         'SURNAME': 100,
-        'DATE_TIME': 150,
-        'LOC': 100,
+        'DATE_TIME': 125,
+        'LOC': 125,
         'REMARKS': 100
         }
 
@@ -204,6 +205,7 @@ class DataBaseGUI:
         self.show()
 
     def create_module_frame(self):
+        self.database_frame.grid_forget()
 
         self.center(self.window)
 
@@ -218,8 +220,72 @@ class DataBaseGUI:
         self.rename = tk.Entry(self.module_frame, width=30)
         self.rename.grid(row=0, column=1)
 
-        modules_button = tk.Button(self.module_frame, text='MANAGE MODULES', width=15, height=2, command=self.create_database_frame)
+        modules_button = tk.Button(self.module_frame, text='MANAGE DATABASE', width=15, height=2, command=self.create_database_frame)
         modules_button.grid(row=0, column=3, padx=25, pady=10, ipadx=25)
+
+        refresh_button = tk.Button(self.module_frame, text='REFRESH TABLE', width=15, height=2, command=self.show)
+        refresh_button.grid(row=0, column=4, padx=25, pady=10, ipadx=25)
+        self.create_tree_module()
+        self.tree_module.bind('<<TreeviewSelect>>', self.update_entry)
+
+    def create_tree_module(self):
+
+        COLUMN_WIDTHS = {
+        'ID': 100,
+        'SERIAL_ID': 100,
+        'FIRST_NAME': 100,
+        'SURNAME': 100,
+        'DATE_TIME': 125,
+        'LOC': 125,
+        'REMARKS': 100
+        }
+
+        column_names = ['ID', 'MODULE_NAME']
+        columns = tuple(column_names)
+
+        self.tree_module = ttk.Treeview(
+            self.window,
+            columns=columns,
+            show='headings'
+        )
+
+        scrollbar = ttk.Scrollbar(
+            self.window,
+            orient='vertical',
+            command=self.tree_module.yview
+        )
+
+        self.tree_module.configure(yscrollcommand=scrollbar.set)
+
+        for column in columns:
+            self.tree_module.heading(column, text=column)
+            self.tree_module.column(str(column), width=COLUMN_WIDTHS.get(column, 100))
+
+        self.tree_module.grid(row=5, column=0, sticky=tk.NSEW, padx=(25, 0))
+        scrollbar.grid(row=5, column=7, sticky=tk.N + tk.S)
+
+        self.show_module()
+
+    def show_module(self):
+
+        # Clears the table
+        self.clear_all()
+
+        db = mysql.connector.connect(host='localhost', user=self.username, password=self.password, db='care-m')
+        cursor = db.cursor()    
+
+        try:
+            query = 'SELECT ID, MODULE_NAME FROM tb_carem_modules'
+            cursor.execute(query)
+            records = cursor.fetchall()
+
+            for info in records:
+                self.tree_module.insert('', tk.END, values=info)
+        
+        except Exception as e:
+            print(e)
+            db.rollback()
+            db.close()
 
     def show(self):
 
@@ -446,7 +512,7 @@ class DataBaseGUI:
 
         fig, ax = plt.subplots()
 
-        ax.imshow(img, extent=[-1024, 1024, -672, 672])
+        ax.imshow(img, extent=[-441, 441, -421, 421])
         ax.scatter(x_coordinates, y_coordinates, c='black')
         ax.set_xlim(-350, 350)
         ax.set_ylim(-350, 350)
