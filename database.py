@@ -4,6 +4,7 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import mysql.connector
 import numpy as np
+import gmplot
 
 import tkinter as tk
 from tkinter import *
@@ -103,7 +104,7 @@ class DataBaseGUI:
     def create_database_frame(self):
  
         self.window.title("Database Table")
-        self.window.geometry(f'{800}x{560}')
+        self.window.geometry(f'{925}x{560}')
         self.window.bind('<Return>', self.submit)
 
         self.center(self.window)
@@ -126,20 +127,20 @@ class DataBaseGUI:
             # Set the Entry widget as an attribute of the object using the label text as the attribute name
             setattr(self, label_text.lower().replace(' ', '_'), entry)
         
-        location_fields = ['Location: X', 'Location: Y']
+        location_fields = ['Latitude', 'Longitude']
 
         for i in location_fields:
             label = tk.Label(self.database_frame, text=i, width=15, height=2)
-            if i == 'Location: Y':
+            if i == 'Latitude':
                 label.grid(row=4, column=2, pady=10, padx=10)
             else:
                 label.grid(row=4, column=0, pady=10, padx=10)
         
-        self.x_coordinate = tk.Entry(self.database_frame, width=30)
-        self.y_coordinate = tk.Entry(self.database_frame, width=30)
+        self.longitude = tk.Entry(self.database_frame, width=30)
+        self.latitude = tk.Entry(self.database_frame, width=30)
 
-        self.x_coordinate.grid(row=4, column=1)
-        self.y_coordinate.grid(row=4, column=3)
+        self.longitude.grid(row=4, column=1)
+        self.latitude.grid(row=4, column=3)
         
         # CRUD BUTTONS
         button_names = ['ADD', 'UPDATE', 'DELETE', 'CLEAR FORMS', 'REFRESH TABLE']
@@ -159,7 +160,7 @@ class DataBaseGUI:
         
         self.matplot_button = tk.Button(self.database_frame, text='GRAPH POINTS', width=15, height=2)
         self.matplot_button.grid(row=2, column=3, padx=25, pady=10, ipadx=25)
-        self.matplot_button['command'] = self.graph_points
+        self.matplot_button['command'] = self.create_google_map
 
         self.create_tree()
         self.tree.bind('<<TreeviewSelect>>', self.update_entry)
@@ -174,11 +175,12 @@ class DataBaseGUI:
         'FIRST_NAME': 100,
         'SURNAME': 100,
         'DATE_TIME': 125,
-        'LOC': 125,
+        'LONGITUDE': 125,
+        'LATITUDE': 125,
         'REMARKS': 100
         }
 
-        column_names = ['ID', 'SERIAL_ID', 'FIRST_NAME', 'SURNAME', 'DATE_TIME', 'LOC', 'REMARKS']
+        column_names = ['ID', 'SERIAL_ID', 'FIRST_NAME', 'SURNAME', 'DATE_TIME', 'LONGITUDE', 'LATITUDE', 'REMARKS']
         columns = tuple(column_names)
 
         self.tree = ttk.Treeview(
@@ -296,7 +298,7 @@ class DataBaseGUI:
         cursor = db.cursor()    
 
         try:
-            query = 'SELECT ID,SERIAL_ID,FIRST_NAME,SURNAME,DATE_TIME,LOC,REMARKS FROM tb_carem'
+            query = 'SELECT ID,SERIAL_ID,FIRST_NAME,SURNAME,DATE_TIME,LONGITUDE,LATITUDE,REMARKS FROM tb_carem'
             cursor.execute(query)
             records = cursor.fetchall()
 
@@ -318,23 +320,21 @@ class DataBaseGUI:
             first_name = self.first_name.get()
             remarks = self.remarks.get()
             
-            x_coordinate = self.x_coordinate.get()
-            y_coordinate = self.y_coordinate.get()
-
-            location = f'{x_coordinate}, {y_coordinate}'
+            longitude = self.longitude.get()
+            latitude = self.latitude.get()
             
-            if not serial_id or not surname or not first_name or not remarks or not x_coordinate or not y_coordinate:
+            if not serial_id or not surname or not first_name or not remarks or not longitude or not latitude:
                 messagebox.showerror('Submit Invalid', 'Please Fill in all the fields.')
             else:
                 duplicate = self.check_duplicate(serial_id)
                 if duplicate:
                     messagebox.showerror("Error", "Duplicate 'Serial ID' Value Entered, Please Enter A Different Value.")
 
-                query = 'INSERT INTO `tb_carem` (`SERIAL_ID`, `SURNAME`, `FIRST_NAME`,`REMARKS`, `LOC`) VALUES (%s, %s, %s, %s, %s);'
-                values = (serial_id, surname, first_name, remarks, location)
+                query = 'INSERT INTO `tb_carem` (`SERIAL_ID`, `SURNAME`, `FIRST_NAME`,`REMARKS`, `LONGITUDE`, `LATITUDE`) VALUES (%s, %s, %s, %s, %s, %s);'
+                values = (str(serial_id), surname, first_name, remarks, longitude, latitude)
                 cursor.execute(query, values)
 
-                query_1 = 'SELECT ID,SERIAL_ID,FIRST_NAME,SURNAME,DATE_TIME,LOC,REMARKS FROM tb_carem'
+                query_1 = 'SELECT ID,SERIAL_ID,FIRST_NAME,SURNAME,DATE_TIME,LONGITUDE,LATITUDE,REMARKS FROM tb_carem'
                 cursor.execute(query_1)
                 records = cursor.fetchall()
                
@@ -350,8 +350,8 @@ class DataBaseGUI:
                 self.last_name.delete(0, tk.END)
                 self.first_name.delete(0, tk.END)
                 self.remarks.delete(0, tk.END)
-                self.x_coordinate.delete(0, tk.END)
-                self.y_coordinate.delete(0, tk.END)
+                self.longitude.delete(0, tk.END)
+                self.latitude.delete(0, tk.END)
 
                 self.serial_id.focus_set()
    
@@ -375,10 +375,8 @@ class DataBaseGUI:
         first_name = self.first_name.get()
         remarks = self.remarks.get()
 
-        x_coordinate = self.x_coordinate.get()
-        y_coordinate = self.y_coordinate.get()
-
-        location = f'{x_coordinate}, {y_coordinate}'
+        longitude = self.longitude.get()
+        latitude = self.latitude.get()
 
         item = self.tree.item(self.tree.focus())
 
@@ -391,7 +389,7 @@ class DataBaseGUI:
         
         
         try:
-            if not serial_id or not surname or not first_name or not remarks or not location:
+            if not serial_id or not surname or not first_name or not remarks or not longitude or not latitude:
                 messagebox.showerror('Update Invalid', 'Please Fill in all the fields.')
             else:
 
@@ -399,11 +397,11 @@ class DataBaseGUI:
                 if result:
                     if item:
                         
-                        query_1 = "UPDATE tb_carem SET SERIAL_ID=%s, FIRST_NAME=%s, SURNAME=%s, LOC=%s, REMARKS=%s WHERE id=%s"
-                        values = (serial_id, first_name, surname, location, remarks, id)
+                        query_1 = "UPDATE tb_carem SET SERIAL_ID=%s, FIRST_NAME=%s, SURNAME=%s, LONGITUDE=%s, LATITUDE=%s REMARKS=%s WHERE id=%s"
+                        values = (serial_id, first_name, surname, longitude, latitude, remarks, id)
                         cursor.execute(query_1, values)
 
-                        query_2 = 'SELECT ID,SERIAL_ID,FIRST_NAME,SURNAME,DATE_TIME,LOC,REMARKS FROM tb_carem'
+                        query_2 = 'SELECT ID,SERIAL_ID,FIRST_NAME,SURNAME,DATE_TIME,LONGITUDE,LATITUDE,REMARKS FROM tb_carem'
                         
                         cursor.execute(query_2)
                         records = cursor.fetchall()
@@ -420,11 +418,11 @@ class DataBaseGUI:
                         self.last_name.delete(0, tk.END)
                         self.first_name.delete(0, tk.END)
                         self.remarks.delete(0, tk.END)
-                        self.x_coordinate.delete(0, tk.END)
-                        self.y_coordinate.delete(0, tk.END)
+                        self.longitude.delete(0, tk.END)
+                        self.latitude.delete(0, tk.END)
 
                         # Update the Treeview with the new data
-                        self.tree.item(item, values=(id, serial_id, first_name, surname, date, location, remarks))
+                        self.tree.item(item, values=(id, serial_id, first_name, surname, date, longitude, latitude, remarks))
                 
         except mysql.connector.Error as error:
             print("Failed to retrieve column: {}".format(error))
@@ -469,6 +467,34 @@ class DataBaseGUI:
             if db.is_connected():
                 cursor.close()
                 db.close()
+    
+    def create_google_map(self):
+        # Connect to your database
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="Akosiwilliam47",
+            database="care-m"
+        )
+        c = conn.cursor()
+
+        # Retrieve the latest latitude and longitude data from your database
+        c.execute("SELECT LATITUDE, LONGITUDE FROM tb_carem")
+        data = c.fetchall()
+
+        # Create a new map centered on the first point in your data
+        gmap = gmplot.GoogleMapPlotter(data[0][0], data[0][1], 13)
+
+        # Plot a single marker for each point in the data
+        for point in data:
+            gmap.marker(point[0], point[1])
+
+        # Draw the map and save it to an HTML file
+        gmap.draw("emergency_points.html")
+
+        # Open the map in your web browser
+        import webbrowser
+        webbrowser.open_new_tab('emergency_points.html')
 
     def graph_points(self):
 
@@ -533,8 +559,8 @@ class DataBaseGUI:
         self.serial_id.delete(0, tk.END)
         self.first_name.delete(0, tk.END)
         self.last_name.delete(0, tk.END)
-        self.x_coordinate.delete(0, tk.END)
-        self.y_coordinate.delete(0, tk.END)
+        self.longitude.delete(0, tk.END)
+        self.latitude.delete(0, tk.END)
         self.remarks.delete(0, tk.END)
 
     def update_entry(self, event):
@@ -544,26 +570,22 @@ class DataBaseGUI:
         serial_id = self.tree.item(selected_item)['values'][1]
         first_name = self.tree.item(selected_item)['values'][2]
         surname = self.tree.item(selected_item)['values'][3]
-        location = self.tree.item(selected_item)['values'][5]
-        remarks = self.tree.item(selected_item)['values'][6]
+        longitude = self.tree.item(selected_item)['values'][5]
+        latitude = self.tree.item(selected_item)['values'][6]
+        remarks = self.tree.item(selected_item)['values'][7]
 
-        coordinates = location.split(', ')
-
-        x_coordinate = coordinates[0]
-        y_coordinate = coordinates[1]
-        
         self.serial_id.delete(0, tk.END)
         self.first_name.delete(0, tk.END)
         self.last_name.delete(0, tk.END)
-        self.x_coordinate.delete(0, tk.END)
-        self.y_coordinate.delete(0, tk.END)
+        self.longitude.delete(0, tk.END)
+        self.latitude.delete(0, tk.END)
         self.remarks.delete(0, tk.END)
         
         self.serial_id.insert(0, serial_id)
         self.first_name.insert(0, first_name)
         self.last_name.insert(0, surname)
-        self.x_coordinate.insert(0, x_coordinate)
-        self.y_coordinate.insert(0, y_coordinate)
+        self.longitude.insert(0, longitude)
+        self.latitude.insert(0, latitude)
         self.remarks.insert(0, remarks)
 
     def check_duplicate(self, value):
